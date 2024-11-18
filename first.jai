@@ -1,18 +1,21 @@
 BASE_WIDTH    :: 64;
 BASE_HEIGHT   :: 32;
-
+FPS_TARGET :: 75;
 WINDOW_WIDTH  :: BASE_WIDTH * 18;
 WINDOW_HEIGHT :: BASE_HEIGHT * 18;
 
 PIXEL_SIZE :: WINDOW_HEIGHT / 8;
 window : Window_Type;
 
-key_left  : u32;
-key_right : u32;
-key_up    : u32;
-key_down  : u32;
+key_left  : bool;
+key_right : bool;
+key_up    : bool;
+key_down  : bool;
 
 position := Vector2.{0.0,0.0};
+
+last_time : float64;
+delta_time : float64;
 
 main :: () {
     window := create_window(WINDOW_WIDTH, WINDOW_HEIGHT, "Chip-8 Emulator");
@@ -29,22 +32,38 @@ main :: () {
                 if it.key_code == .ESCAPE then break main;
             }
             process_input(it);
-            process_logic();
         }
+        now := seconds_since_init();
+
+        delta_time = now - last_time;
+        process_logic();
 
 
         render_stuff();
         Simp.swap_buffers(window);
+
+        reset_temporary_storage();
+        last_time = now;
+
+
+        //Wait routine
+        target_delta := 1.0 / cast(float64) FPS_TARGET;
+
+        sleep_ms := cast(s32) target_delta;
+
+        if (sleep_ms > 0)
+            sleep_milliseconds(sleep_ms);
+
+        while seconds_since_init() < now + target_delta { }
     }
-    reset_temporary_storage();
 }
 
 process_input :: (event : Input.Event) {
     if event.type == .KEYBOARD {
-        if event.key_code == .ARROW_LEFT  key_left  = event.key_pressed;
-        if event.key_code == .ARROW_RIGHT key_right = event.key_pressed;
-        if event.key_code == .ARROW_DOWN  key_down  = event.key_pressed;
-        if event.key_code == .ARROW_UP    key_up    = event.key_pressed;
+        if event.key_code == .ARROW_LEFT  key_left  = xx event.key_pressed;
+        if event.key_code == .ARROW_DOWN  key_down  = xx event.key_pressed;
+        if event.key_code == .ARROW_RIGHT key_right = xx event.key_pressed;
+        if event.key_code == .ARROW_UP    key_up    = xx event.key_pressed;
     }
 }
 process_logic :: () {
